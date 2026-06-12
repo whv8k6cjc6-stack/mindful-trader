@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#060B14">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-title" content="MindfulTrader">
+<title>MindfulTrader 投資冥想</title>
+<style>
+:root{
+  --bg:#060B14;--card:#0C1626;--cardhi:#122036;--border:#1B2D47;
+  --text:#E9F3FC;--sub:#5E84A6;--dim:#3A5A78;
+  --teal:#27C4B4;--red:#F0566A;--amber:#F5A623;--violet:#9D8CFF;--green:#3DD68C;--blue:#4DA3FF;--purple:#7B6CF6;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'PingFang TC','Noto Sans TC','Segoe UI',sans-serif;overscroll-behavior:none}
+.wrap{max-width:440px;margin:0 auto;padding:0 18px 110px;min-height:100vh}
+.hidden{display:none!important}
+button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:12px}
+.sect{font-size:12px;color:var(--dim);letter-spacing:2.5px;text-transform:uppercase;margin:26px 2px 12px;font-weight:700}
+.row{display:flex;align-items:center;gap:14px}
+.btn{border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;width:100%;color:#04121A}
+.btn:disabled{background:var(--cardhi)!important;color:var(--dim)!important;box-shadow:none!important}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--dim);font-weight:400;font-size:13px}
+textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:14px;min-height:70px;resize:none;outline:none;font-family:inherit}
+/* tab bar */
+#tabbar{position:fixed;bottom:0;left:0;right:0;background:rgba(8,14,26,.93);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border);z-index:50}
+#tabbar .inner{max-width:440px;margin:0 auto;display:flex;padding:10px 8px calc(14px + env(safe-area-inset-bottom,0px))}
+#tabbar button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer}
+#tabbar .ico{font-size:21px;filter:grayscale(1) opacity(.5);transition:filter .15s}
+#tabbar .lbl{font-size:10.5px;font-weight:700;color:var(--dim)}
+#tabbar button.on .ico{filter:none}
+#tabbar button.on .lbl{color:var(--teal)}
+/* breathing */
+.bwrap{position:relative;width:220px;height:220px;margin:0 auto;display:flex;align-items:center;justify-content:center}
+.bglow{position:absolute;inset:0;border-radius:50%;opacity:.55;transition:transform .1s linear}
+.bring{position:absolute;width:82%;height:82%;border-radius:50%;border:1px dashed}
+.bcore{width:64%;height:64%;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:transform .1s linear}
+.bcore span{font-size:15px;font-weight:800;color:#fff;letter-spacing:4px}
+/* mood */
+.moods{display:flex;gap:8px}
+.moods button{flex:1;padding:13px 2px;border-radius:14px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;color:#fff;transition:all .15s}
+.moods .me{font-size:24px}
+.moods .ml{font-size:10px;margin-top:4px;color:var(--dim)}
+/* progress */
+.prog{height:3px;background:var(--border);border-radius:2px;margin-bottom:30px}
+.prog>div{height:100%;border-radius:2px;transition:width 1s linear}
+/* checklist */
+.chk{display:flex;align-items:center;gap:14px;padding:15px 16px;cursor:pointer}
+.chkbox{width:26px;height:26px;border-radius:8px;flex-shrink:0;border:2px solid var(--dim);display:flex;align-items:center;justify-content:center;font-size:15px;color:#04121A;font-weight:900;transition:all .15s}
+.chk.on .chkbox{border-color:var(--green);background:var(--green)}
+.chk .txt{font-size:14.5px;line-height:1.6;color:#A8C4DA}
+.chk.on .txt{color:var(--text)}
+/* misc */
+.fade{animation:fade .4s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.statgrid{display:flex;gap:10px}
+.statgrid .card{flex:1;text-align:center;padding:14px 6px;margin-bottom:0}
+.tag{font-size:10.5px;border-radius:6px;padding:3px 8px;display:inline-block}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0 14px}
+.back{background:none;border:none;color:var(--sub);font-size:14px;cursor:pointer;padding:6px 0}
+.bars{display:flex;align-items:flex-end;gap:4px;height:90px}
+.bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bars .bar{width:100%;border-radius:4px;background:var(--border);min-height:2px}
+.bars .dl{font-size:8.5px;color:var(--dim);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.bglow,.bcore,.fade{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div id="app" class="wrap"></div>
+
+<div id="tabbar">
+  <div class="inner">
+    <button data-tab="home" class="on"><span class="ico">🏠</span><span class="lbl">今日</span></button>
+    <button data-tab="courses"><span class="ico">🧘</span><span class="lbl">課程</span></button>
+    <button data-tab="check"><span class="ico">✅</span><span class="lbl">檢核</span></button>
+    <button data-tab="stats"><span class="ico">📊</span><span class="lbl">數據</span></button>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const SESSIONS=[
+ {id:"pretrade",icon:"📈",label:"進場前冷靜",sub:"下單前的最後防線",duration:180,color:"#27C4B4",
+  breath:{inhale:4,hold:4,exhale:4,rest:4,name:"箱式呼吸 4-4-4-4"},tags:["FOMO","衝動"],
+  guide:["閉上眼，先感受身體：肩膀緊嗎？心跳快嗎?","問自己：我想進場，是因為「規則符合」還是「怕錯過」?","回想你的進場條件，逐一在腦中核對","如果現在不買，明天會後悔嗎？後悔不是進場理由","深呼吸。市場永遠有下一個機會","若規則全部符合——從容執行；否則，靜待"]},
+ {id:"stoploss",icon:"🛡️",label:"停損後修復",sub:"虧損後的情緒急救",duration:240,color:"#9D8CFF",
+  breath:{inhale:4,hold:7,exhale:8,rest:0,name:"4-7-8 放鬆法"},tags:["虧損","報復性交易"],
+  guide:["停損已經發生了。先承認：這很不舒服","但停損不是失敗——它是你保護資本的證明","注意「想要馬上賺回來」的念頭，那是最危險的陷阱","報復性交易的虧損，通常比原始虧損大三倍","讓情緒流過身體，不壓抑、不放大","今天可以不再交易。本金還在，明天市場也還在","等情緒完全平靜後，再做覆盤——不是現在"]},
+ {id:"greed",icon:"⚖️",label:"獲利時的清醒",sub:"連勝後最容易翻車",duration:150,color:"#F5A623",
+  breath:{inhale:5,hold:2,exhale:5,rest:2,name:"均衡呼吸 5-2-5-2"},tags:["過度自信","加碼衝動"],
+  guide:["你最近賺錢了。注意：現在是最危險的時刻","連勝會讓大腦分泌多巴胺，讓你高估自己","問自己：我的倉位是否悄悄變大了?","「這次不一樣」「我抓到訣竅了」——這些念頭出現了嗎?","獲利是市場給的，不全是你的實力","回到你的倉位管理規則。紀律比手感持久"]},
+ {id:"holding",icon:"🧗",label:"持倉煎熬陪伴",sub:"帳面波動時的定心",duration:300,color:"#4DA3FF",
+  breath:{inhale:6,hold:0,exhale:6,rest:2,name:"深度呼吸 6-6"},tags:["盯盤焦慮","抱不住"],
+  guide:["帳面數字在跳動，你的心也在跳動","問自己：當初進場的理由，現在改變了嗎?","如果理由沒變，波動只是雜訊","你無法控制價格，只能控制自己的計畫","頻繁看盤不會讓股價上漲，只會消耗你的意志力","設好警示價位，然後把手機放下","好的投資常常是「無聊」的。學會與無聊共處"]},
+ {id:"morning",icon:"🌅",label:"開盤前儀式",sub:"每日心理校準",duration:300,color:"#3DD68C",
+  breath:{inhale:4,hold:2,exhale:6,rest:0,name:"晨間呼吸 4-2-6"},tags:["每日習慣","專注"],
+  guide:["新的交易日。先校準心態，再打開看盤軟體","今天的目標不是賺錢，是「執行計畫」","賺錢是執行計畫的副產品","預想今天可能的情境：大漲、大跌、盤整——各自怎麼應對?","提醒自己：今天可以一筆都不交易","沒有機會時，空手就是最好的倉位","深呼吸三次，帶著平靜開始這一天"]},
+ {id:"night",icon:"🌙",label:"收盤後放下",sub:"把市場留在市場",duration:240,color:"#7B6CF6",
+  breath:{inhale:4,hold:0,exhale:8,rest:0,name:"助眠呼吸 4-8"},tags:["睡眠","焦慮"],
+  guide:["收盤了。今天的盈虧已經定格，無法改變","如果今天賺了——很好，記下做對了什麼","如果今天虧了——也好，記下學到了什麼","不要把K線帶進夢裡。睡眠品質決定明天的判斷力","緩慢吐氣，想像把今天的緊繃一起吐出去","你不是你的損益。你是執行系統的人","放下，休息。明天又是新的一天"]}
+];
+const SOS_STEPS=[
+ {t:"停！手離開下單鍵",d:"現在，把交易軟體切到背景，或把手機放遠一點",sec:10},
+ {t:"深呼吸 5 次",d:"吸氣 4 秒 → 吐氣 6 秒。專注數呼吸，其他什麼都不想",sec:50},
+ {t:"說出 3 個你看到的東西",d:"環顧四周，在心中說出 3 個物品的名字。把自己拉回現實",sec:20},
+ {t:"問自己一個問題",d:"「我現在想做的這個動作，符合我的交易計畫嗎？」誠實回答",sec:20},
+ {t:"做出選擇",d:"如果答案是「不符合」——今天到此為止。如果「符合」——再等 10 分鐘，符合的機會不會跑掉",sec:20}
+];
+const CHECKLIST=["我已確認這筆交易符合我的進場規則","我已設定好停損價位，且能接受該虧損金額","這筆倉位不超過我單筆風險上限","我不是因為「剛虧錢想賺回來」而交易","我不是因為「別人都在賺」而交易","就算這筆虧損，也不影響我的生活"];
+const QUOTES=[
+ {text:"市場先生是你的僕人，不是你的嚮導。",author:"班傑明·葛拉漢"},
+ {text:"投資最大的敵人，是鏡子裡的那個人。",author:"班傑明·葛拉漢"},
+ {text:"在別人貪婪時恐懼，在別人恐懼時貪婪。",author:"華倫·巴菲特"},
+ {text:"股市是把錢從沒耐心的人手中，轉移到有耐心的人手中的工具。",author:"華倫·巴菲特"},
+ {text:"知道自己不知道什麼，比知道什麼更重要。",author:"查理·蒙格"},
+ {text:"賺大錢靠的不是買賣，而是等待。",author:"傑西·李佛摩"},
+ {text:"截斷虧損，讓利潤奔跑。",author:"交易格言"},
+ {text:"計畫你的交易，交易你的計畫。",author:"交易格言"}
+];
+const MOODS=["😰","😟","😐","🙂","😌"], MOOD_LABELS=["焦慮","不安","普通","平靜","安定"];
+
+/* ============ STORAGE (localStorage, 完全離線) ============ */
+const KEY="mindful-trader-v1";
+function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function save(d){try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+let data=Object.assign({logs:[],lastDay:null,streak:0,totalMin:0,totalSessions:0},load()||{});
+const todayStr=()=>new Date().toISOString().slice(0,10);
+function recordSession(sessionId,minutes,mb,ma,note){
+  const today=todayStr();
+  if(data.lastDay!==today){
+    const yest=new Date(Date.now()-864e5).toISOString().slice(0,10);
+    data.streak=(data.lastDay===yest)?data.streak+1:1;
+    data.lastDay=today;
+  }
+  data.logs.push({date:new Date().toISOString(),sessionId,minutes,moodBefore:mb,moodAfter:ma,note});
+  if(data.logs.length>300)data.logs=data.logs.slice(-300);
+  data.totalMin+=minutes;data.totalSessions+=1;
+  save(data);
+}
+
+/* ============ STATE ============ */
+let tab="home", view=null; // view: null | {type:'session',s,stage,...} | {type:'sos',...}
+let timers=[];
+function clearTimers(){timers.forEach(t=>clearInterval(t));timers=[]}
+const app=document.getElementById("app");
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+const esc=s=>s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function hexA(hex,a){return hex+Math.round(a*255).toString(16).padStart(2,"0")}
+
+/* ============ BREATHING ENGINE ============ */
+function startBreath(pattern,color){
+  const phases=[["inhale",pattern.inhale],["hold",pattern.hold],["exhale",pattern.exhale],["rest",pattern.rest]].filter(p=>p[1]>0);
+  let i=0,t=0;
+  const tick=()=>{
+    t+=0.05;
+    const[name,dur]=phases[i];
+    const prog=Math.min(t/dur,1);
+    if(t>=dur){t=0;i=(i+1)%phases.length}
+    const core=document.getElementById("bcore"),glow=document.getElementById("bglow"),lbl=document.getElementById("blbl");
+    if(!core)return;
+    const ph=phases[i][0]; // current after possible advance — use name before advance for scale calc
+    const cur=name;
+    const scale=cur==="inhale"?0.55+prog*0.45:cur==="hold"?1.0:cur==="exhale"?1.0-prog*0.45:0.55;
+    core.style.transform=`scale(${scale})`;
+    glow.style.transform=`scale(${scale*1.4})`;
+    lbl.textContent=cur==="inhale"?"吸氣":cur==="hold"?"屏息":cur==="exhale"?"呼氣":"停頓";
+  };
+  const id=setInterval(tick,50);timers.push(id);
+  return id;
+}
+function breathHTML(color,size){
+  size=size||220;
+  return `<div class="bwrap" style="width:${size}px;height:${size}px">
+    <div id="bglow" class="bglow" style="background:radial-gradient(circle, ${hexA(color,0.35)} 0%, transparent 65%)"></div>
+    <div class="bring" style="border-color:${hexA(color,0.2)}"></div>
+    <div id="bcore" class="bcore" style="background:radial-gradient(circle at 35% 32%, ${hexA(color,0.85)}, ${hexA(color,0.27)});border:2px solid ${hexA(color,0.47)};box-shadow:0 0 44px ${hexA(color,0.4)}, inset 0 0 26px ${hexA(color,0.13)}">
+      <span id="blbl">吸氣</span>
+    </div>
+  </div>`;
+}
+function breathLegend(b,color){
+  const items=[["吸",b.inhale],b.hold>0?["屏",b.hold]:null,["呼",b.exhale],b.rest>0?["停",b.rest]:null].filter(Boolean);
+  return `<div style="text-align:center;margin:22px 0 18px">
+    <div style="font-size:11px;color:var(--dim);letter-spacing:2px;margin-bottom:8px">${b.name}</div>
+    <div style="display:flex;gap:18px;justify-content:center">
+      ${items.map(([l,n])=>`<div style="text-align:center"><div style="font-size:17px;font-weight:800;color:${color}">${n}</div><div style="font-size:10px;color:var(--dim)">${l}</div></div>`).join("")}
+    </div></div>`;
+}
+function moodPickerHTML(id,color){
+  return `<div class="moods" id="${id}">
+    ${MOODS.map((m,i)=>`<button data-i="${i}"><div class="me">${m}</div><div class="ml">${MOOD_LABELS[i]}</div></button>`).join("")}
+  </div>`;
+}
+function bindMoodPicker(id,color,cb){
+  const el=document.getElementById(id);
+  el.querySelectorAll("button").forEach(b=>{
+    b.onclick=()=>{
+      el.querySelectorAll("button").forEach(x=>{x.style.borderColor="var(--border)";x.style.background="var(--card)";x.querySelector(".ml").style.color="var(--dim)"});
+      b.style.borderColor=color;b.style.background=hexA(color,0.11);b.querySelector(".ml").style.color=color;
+      cb(parseInt(b.dataset.i));
+    };
+  });
+}
+
+/* ============ SESSION PLAYER ============ */
+function renderSession(s){
+  clearTimers();
+  let stage="moodBefore",moodBefore=null,moodAfter=null,elapsed=0,running=false,guideIdx=0,tickId=null;
+  document.getElementById("tabbar").classList.add("hidden");
+
+  function topbar(showTime){
+    return `<div class="topbar">
+      <button class="back" id="exitBtn">‹ 退出</button>
+      <div style="font-size:13px;font-weight:800;color:${s.color}">${s.icon} ${s.label}</div>
+      <div style="width:48px;text-align:right;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums" id="timeLeft">${showTime?fmt(s.duration-elapsed):""}</div>
+    </div>`;
+  }
+
+  function drawMoodBefore(){
+    app.innerHTML=`<div class="fade">${topbar(false)}
+      <div style="text-align:center;margin:40px 0 24px">
+        <div style="font-size:46px;margin-bottom:14px">${s.icon}</div>
+        <div style="font-size:23px;font-weight:800">${s.label}</div>
+        <div style="font-size:13px;color:var(--sub);margin-top:6px">${s.sub} · ${Math.round(s.duration/60)} 分鐘 · ${s.breath.name}</div>
+      </div>
+      <div class="card"><div style="font-size:13px;color:var(--sub);margin-bottom:12px;font-weight:700">開始前，先記錄當下的情緒</div>${moodPickerHTML("mp1",s.color)}</div>
+      <button class="btn" id="startBtn" disabled style="background:${s.color};box-shadow:0 6px 24px ${hexA(s.color,0.4)}">開始冥想</button>
+    </div>`;
+    document.getElementById("exitBtn").onclick=exitSession;
+    bindMoodPicker("mp1",s.color,i=>{moodBefore=i;document.getElementById("startBtn").disabled=false});
+    document.getElementById("startBtn").onclick=()=>{stage="play";drawPlay();setTimeout(startTimer,300)};
+  }
+
+  function drawPlay(){
+    app.innerHTML=`<div class="fade">${topbar(true)}
+      <div class="prog"><div id="pbar" style="width:${elapsed/s.duration*100}%;background:${s.color};box-shadow:0 0 8px ${hexA(s.color,0.4)}"></div></div>
+      ${breathHTML(s.color)}
+      ${breathLegend(s.breath,s.color)}
+      <div class="card" style="min-height:86px;display:flex;align-items:center;justify-content:center;border-left:3px solid ${s.color}">
+        <div id="guideTxt" style="font-size:15.5px;line-height:1.85;text-align:center;color:#C4DCEF">${s.guide[guideIdx]}</div>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:24px">
+        <button id="ppBtn" style="width:66px;height:66px;border-radius:50%;font-size:22px;cursor:pointer;background:${s.color};border:2px solid ${s.color};color:#04121A;box-shadow:0 0 22px ${hexA(s.color,0.4)}">▶</button>
+      </div>
+    </div>`;
+    document.getElementById("exitBtn").onclick=exitSession;
+    document.getElementById("ppBtn").onclick=()=>{running?pause():startTimer()};
+  }
+
+  function startTimer(){
+    startBreath(s.breath,s.color);
+    tickId=setInterval(()=>{
+      elapsed++;
+      guideIdx=Math.min(Math.floor(elapsed/s.duration*s.guide.length),s.guide.length-1);
+      const tl=document.getElementById("timeLeft"),pb=document.getElementById("pbar"),gt=document.getElementById("guideTxt");
+      if(tl)tl.textContent=fmt(s.duration-elapsed);
+      if(pb)pb.style.width=(elapsed/s.duration*100)+"%";
+      if(gt&&gt.textContent!==s.guide[guideIdx])gt.textContent=s.guide[guideIdx];
+      if(elapsed>=s.duration){clearTimers();running=false;stage="moodAfter";drawMoodAfter()}
+    },1000);
+    timers.push(tickId);running=true;
+    const b=document.getElementById("ppBtn");
+    if(b){b.textContent="⏸";b.style.background=hexA(s.color,0.12);b.style.color=s.color;b.style.boxShadow="none"}
+  }
+  function pause(){
+    clearTimers();running=false;
+    const b=document.getElementById("ppBtn");
+    if(b){b.textContent="▶";b.style.background=s.color;b.style.color="#04121A";b.style.boxShadow=`0 0 22px ${hexA(s.color,0.4)}`}
+  }
+
+  function drawMoodAfter(){
+    app.innerHTML=`<div class="fade">${topbar(false)}
+      <div style="text-align:center;margin:30px 0 22px"><div style="font-size:44px">✨</div><div style="font-size:21px;font-weight:800;margin-top:8px">完成了</div></div>
+      <div class="card"><div style="font-size:13px;color:var(--sub);margin-bottom:12px;font-weight:700">現在的情緒</div>${moodPickerHTML("mp2",s.color)}</div>
+      <div class="card"><div style="font-size:13px;color:var(--sub);margin-bottom:10px;font-weight:700">一句話日誌（選填）</div>
+        <textarea id="noteTa" placeholder="此刻的想法、想提醒未來自己的話..."></textarea></div>
+      <button class="btn" id="saveBtn" disabled style="background:${s.color}">儲存紀錄</button>
+    </div>`;
+    document.getElementById("exitBtn").onclick=exitSession;
+    bindMoodPicker("mp2",s.color,i=>{moodAfter=i;document.getElementById("saveBtn").disabled=false});
+    document.getElementById("saveBtn").onclick=()=>{
+      recordSession(s.id,Math.max(1,Math.round(elapsed/60)),moodBefore,moodAfter,document.getElementById("noteTa").value.trim());
+      drawDone();
+    };
+  }
+
+  function drawDone(){
+    const improved=moodAfter>moodBefore;
+    app.innerHTML=`<div class="fade" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:18px;text-align:center">
+      <div style="font-size:52px">🏆</div>
+      <div style="font-size:22px;font-weight:800">連續 ${data.streak} 天心態練習</div>
+      <div class="card" style="display:flex;align-items:center;gap:16px;padding:16px 28px">
+        <div><div style="font-size:30px">${MOODS[moodBefore]}</div><div style="font-size:11px;color:var(--dim);margin-top:4px">之前</div></div>
+        <div style="font-size:20px;color:${s.color}">→</div>
+        <div><div style="font-size:30px">${MOODS[moodAfter]}</div><div style="font-size:11px;color:var(--dim);margin-top:4px">之後</div></div>
+      </div>
+      ${improved?`<div style="font-size:14px;color:${s.color};font-weight:700">情緒提升 ${moodAfter-moodBefore} 格 🎉</div>`:""}
+      <button class="btn" id="homeBtn" style="background:${s.color};width:auto;padding:14px 44px">回到首頁</button>
+    </div>`;
+    document.getElementById("homeBtn").onclick=exitSession;
+  }
+
+  function exitSession(){clearTimers();view=null;document.getElementById("tabbar").classList.remove("hidden");render()}
+  drawMoodBefore();
+}
+
+/* ============ SOS ============ */
+function renderSos(){
+  clearTimers();
+  document.getElementById("tabbar").classList.add("hidden");
+  document.body.style.background="#120710";
+  let step=0,secLeft=SOS_STEPS[0].sec,cd=null;
+
+  function draw(){
+    const st=SOS_STEPS[step];
+    const isLastDone=step===SOS_STEPS.length-1&&secLeft===0;
+    app.innerHTML=`<div class="fade" style="display:flex;flex-direction:column;min-height:95vh">
+      <div class="topbar">
+        <button class="back" id="sosExit" style="color:#9B6B7A">‹ 退出</button>
+        <div style="font-size:13px;font-weight:800;color:var(--red)">🚨 SOS 緊急冷靜</div><div style="width:48px"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:26px">
+        ${SOS_STEPS.map((_,i)=>`<div style="flex:1;height:4px;border-radius:2px;background:${i<step?"var(--red)":i===step?"rgba(240,86,106,.6)":"#2A1520"}"></div>`).join("")}
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:26px">
+        ${breathHTML("#F0566A",180)}
+        <div style="text-align:center">
+          <div style="font-size:12px;color:#9B6B7A;letter-spacing:2px;margin-bottom:10px">步驟 ${step+1} / ${SOS_STEPS.length}</div>
+          <div style="font-size:22px;font-weight:800;margin-bottom:12px">${st.t}</div>
+          <div style="font-size:15px;line-height:1.8;color:#D8B8C2;padding:0 8px">${st.d}</div>
+        </div>
+        <div id="sosBottom" style="text-align:center">
+          ${isLastDone?"":`<div id="cdNum" style="font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--red)">${secLeft}</div>`}
+        </div>
+      </div>
+    </div>`;
+    document.getElementById("sosExit").onclick=exit;
+    startBreath({inhale:4,hold:0,exhale:6,rest:0},"#F0566A");
+    if(isLastDone)showFinal();else startCountdown();
+  }
+  function startCountdown(){
+    cd=setInterval(()=>{
+      secLeft--;
+      const el=document.getElementById("cdNum");
+      if(el)el.textContent=Math.max(secLeft,0);
+      if(secLeft<=0){
+        clearInterval(cd);
+        if(step<SOS_STEPS.length-1){
+          const bottom=document.getElementById("sosBottom");
+          bottom.innerHTML=`<button id="nextBtn" style="background:var(--red);border:none;border-radius:12px;padding:12px 36px;color:#fff;font-weight:800;font-size:14px;cursor:pointer">下一步</button>`;
+          document.getElementById("nextBtn").onclick=()=>{step++;secLeft=SOS_STEPS[step].sec;clearTimers();draw()};
+        }else{showFinal()}
+      }
+    },1000);timers.push(cd);
+  }
+  function showFinal(){
+    const bottom=document.getElementById("sosBottom");
+    bottom.innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">
+      <button class="btn" id="calmBtn" style="background:var(--teal)">我冷靜下來了，今天到此為止 ✅</button>
+      <button class="btn-ghost btn" id="againBtn" style="border-color:#3A2030;color:#9B6B7A;background:transparent">還是很想下單——再跑一輪</button>
+    </div>`;
+    document.getElementById("calmBtn").onclick=exit;
+    document.getElementById("againBtn").onclick=()=>{step=0;secLeft=SOS_STEPS[0].sec;clearTimers();draw()};
+  }
+  function exit(){clearTimers();view=null;document.body.style.background="var(--bg)";document.getElementById("tabbar").classList.remove("hidden");render()}
+  draw();
+}
+
+/* ============ TABS ============ */
+function homeHTML(){
+  const h=new Date().getHours();
+  const greeting=h<9?"早安，先校準心態再開盤":h<14?"盤中時段，保持冷靜":h<18?"收盤了，覆盤前先沉澱":"晚上好，把市場放下吧";
+  const sgId=h<9?"morning":h<14?"pretrade":h<18?"stoploss":"night";
+  const sg=SESSIONS.find(x=>x.id===sgId);
+  const q=QUOTES[new Date().getDate()%QUOTES.length];
+  const todayLogs=data.logs.filter(l=>l.date.slice(0,10)===todayStr());
+  return `<div class="fade">
+    <div style="padding:34px 2px 0">
+      <div style="font-size:12px;letter-spacing:3.5px;color:var(--teal);text-transform:uppercase;font-weight:800">MindfulTrader</div>
+      <div style="font-size:26px;font-weight:800;line-height:1.3;margin-top:8px">${greeting}</div>
+    </div>
+    <div class="statgrid" style="margin-top:20px">
+      <div class="card"><div style="font-size:18px">🔥</div><div style="font-size:21px;font-weight:800;margin-top:2px">${data.streak}</div><div style="font-size:10.5px;color:var(--dim);margin-top:2px">連續天數</div></div>
+      <div class="card"><div style="font-size:18px">🧘</div><div style="font-size:21px;font-weight:800;margin-top:2px">${data.totalSessions}</div><div style="font-size:10.5px;color:var(--dim);margin-top:2px">總次數</div></div>
+      <div class="card"><div style="font-size:18px">⏱</div><div style="font-size:21px;font-weight:800;margin-top:2px">${data.totalMin}</div><div style="font-size:10.5px;color:var(--dim);margin-top:2px">累計分鐘</div></div>
+    </div>
+    <div class="sect">緊急時刻</div>
+    <div class="card row" id="sosCard" style="cursor:pointer;border-color:rgba(240,86,106,.4);background:linear-gradient(135deg,#1A0C14,#240E18)">
+      <div style="font-size:30px">🚨</div>
+      <div style="flex:1"><div style="font-weight:800;font-size:16px;color:#FF8B9C">SOS 緊急冷靜</div>
+      <div style="font-size:12.5px;color:#9B6B7A;margin-top:3px">想衝動下單 / 想報復性交易時，立即點我</div></div>
+      <div style="font-size:20px;color:var(--red)">›</div>
+    </div>
+    <div class="sect">此刻推薦</div>
+    <div class="card row" data-session="${sg.id}" style="cursor:pointer;border-color:${hexA(sg.color,0.33)}">
+      <div style="font-size:30px;width:52px;height:52px;border-radius:14px;background:${hexA(sg.color,0.09)};border:1px solid ${hexA(sg.color,0.27)};display:flex;align-items:center;justify-content:center">${sg.icon}</div>
+      <div style="flex:1"><div style="font-weight:800;font-size:16px">${sg.label}</div>
+      <div style="font-size:12.5px;color:var(--sub);margin-top:3px">${sg.sub} · ${Math.round(sg.duration/60)} 分鐘</div></div>
+      <div style="font-size:13px;font-weight:800;color:${sg.color};background:${hexA(sg.color,0.09)};border-radius:10px;padding:8px 14px">開始</div>
+    </div>
+    ${todayLogs.length?`<div class="sect">今日已完成</div><div class="card">${todayLogs.map((l,i)=>{
+      const ss=SESSIONS.find(x=>x.id===l.sessionId);
+      return `<div class="row" style="padding:8px 0;${i<todayLogs.length-1?"border-bottom:1px solid var(--border)":""}">
+        <span style="font-size:18px">${ss?ss.icon:"🧘"}</span><span style="flex:1;font-size:14px">${ss?ss.label:"冥想"}</span>
+        <span style="font-size:13px;color:var(--dim)">${MOODS[l.moodBefore]} → ${MOODS[l.moodAfter]}</span></div>`}).join("")}</div>`:""}
+    <div class="sect">今日一句</div>
+    <div class="card" style="border-left:3px solid var(--teal)">
+      <div style="font-size:15px;line-height:1.8;color:#BFD9EC;font-style:italic">「${q.text}」</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:8px">— ${q.author}</div>
+    </div>
+  </div>`;
+}
+
+function coursesHTML(){
+  return `<div class="fade">
+    <div style="padding:34px 2px 0"><div style="font-size:24px;font-weight:800">情境課程</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px">依照交易情境選擇，每個課程搭配不同呼吸法</div></div>
+    <div style="margin-top:22px">
+    ${SESSIONS.map(s=>`<div class="card row" data-session="${s.id}" style="cursor:pointer">
+      <div style="font-size:27px;width:50px;height:50px;border-radius:14px;background:${hexA(s.color,0.08)};border:1px solid ${hexA(s.color,0.24)};display:flex;align-items:center;justify-content:center;flex-shrink:0">${s.icon}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:15.5px">${s.label}</div>
+        <div style="font-size:12px;color:var(--sub);margin-top:3px">${s.sub}</div>
+        <div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">
+          ${s.tags.map(t=>`<span class="tag" style="color:${s.color};background:${hexA(s.color,0.08)}">${t}</span>`).join("")}
+          <span class="tag" style="color:var(--dim);background:var(--cardhi)">${Math.round(s.duration/60)} 分鐘</span>
+        </div></div>
+      <div style="font-size:19px;color:${s.color};opacity:.7">›</div>
+    </div>`).join("")}</div></div>`;
+}
+
+let checkState=CHECKLIST.map(()=>false);
+function checkHTML(){
+  const allDone=checkState.every(Boolean),anyDone=checkState.some(Boolean);
+  return `<div class="fade">
+    <div style="padding:34px 2px 0"><div style="font-size:24px;font-weight:800">進場前檢核</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px">下單前逐條確認。任何一條過不了，就不該下單。</div></div>
+    <div style="margin-top:22px">
+    ${CHECKLIST.map((item,i)=>`<div class="card chk ${checkState[i]?"on":""}" data-chk="${i}" style="${checkState[i]?"border-color:rgba(61,214,140,.33)":""}">
+      <div class="chkbox">${checkState[i]?"✓":""}</div><div class="txt">${item}</div>
+    </div>`).join("")}</div>
+    <div style="margin-top:10px">
+    ${allDone?`<div class="card" style="text-align:center;border-color:rgba(61,214,140,.4);background:linear-gradient(135deg,#0A1F18,#0C2418)">
+        <div style="font-size:30px">✅</div><div style="font-size:16px;font-weight:800;color:var(--green);margin-top:8px">全部通過——可以從容執行</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:6px">記住：執行後就交給市場，盯著倉位不會改變結果</div></div>`
+    :anyDone?`<div class="card" style="text-align:center;border-color:rgba(245,166,35,.33)">
+        <div style="font-size:14px;color:var(--amber);font-weight:700">⚠️ 還有條件未通過</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:6px">過不了的那一條，就是你的心魔所在。先去做「進場前冷靜」。</div>
+        <button id="goCalm" style="margin-top:12px;background:rgba(39,196,180,.11);border:1px solid rgba(39,196,180,.33);border-radius:10px;padding:10px 22px;color:var(--teal);font-size:13px;font-weight:800;cursor:pointer">📈 去冷靜 3 分鐘</button></div>`
+    :`<div style="text-align:center;font-size:12.5px;color:var(--dim);padding:10px 0">逐條點擊確認 · 誠實面對自己</div>`}
+    </div>
+    <button class="btn btn-ghost" id="resetChk" style="margin-top:14px">重設檢核表</button>
+  </div>`;
+}
+
+function statsHTML(){
+  const logs=data.logs;
+  const last14=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);
+    const dl=logs.filter(l=>l.date.slice(0,10)===d);
+    last14.push({date:d.slice(5),min:dl.reduce((a,b)=>a+b.minutes,0)});
+  }
+  const maxMin=Math.max(...last14.map(d=>d.min),1);
+  const improved=logs.filter(l=>l.moodAfter>l.moodBefore).length;
+  const rate=logs.length?Math.round(improved/logs.length*100):0;
+  const counts={};logs.forEach(l=>counts[l.sessionId]=(counts[l.sessionId]||0)+1);
+  const sc=SESSIONS.map(s=>({...s,count:counts[s.id]||0})).filter(s=>s.count>0).sort((a,b)=>b.count-a.count);
+  const notes=logs.filter(l=>l.note).slice(-5).reverse();
+  return `<div class="fade">
+    <div style="padding:34px 2px 0"><div style="font-size:24px;font-weight:800">心態數據</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:6px">長期追蹤，看見自己的改變</div></div>
+    <div class="statgrid" style="margin-top:22px">
+      <div class="card"><div style="font-size:26px;font-weight:800;color:var(--teal)">${rate}%</div><div style="font-size:11px;color:var(--dim);margin-top:4px">情緒改善率</div></div>
+      <div class="card"><div style="font-size:26px;font-weight:800;color:var(--amber)">🔥 ${data.streak}</div><div style="font-size:11px;color:var(--dim);margin-top:4px">連續天數</div></div>
+    </div>
+    <div class="sect">近 14 天練習量（分鐘）</div>
+    <div class="card"><div class="bars">
+      ${last14.map((d,i)=>`<div class="col">
+        <div class="bar" style="height:${d.min/maxMin*70}px;${d.min>0?"background:var(--teal);box-shadow:0 0 6px rgba(39,196,180,.35);min-height:6px":""}"></div>
+        ${i%3===0?`<div class="dl">${d.date}</div>`:""}
+      </div>`).join("")}
+    </div></div>
+    ${sc.length?`<div class="sect">最常使用的課程</div><div class="card">
+      ${sc.map((s,i)=>`<div class="row" style="padding:9px 0;${i<sc.length-1?"border-bottom:1px solid var(--border)":""}">
+        <span style="font-size:17px">${s.icon}</span><span style="flex:1;font-size:14px">${s.label}</span>
+        <span style="font-size:13px;font-weight:800;color:${s.color}">${s.count} 次</span></div>`).join("")}</div>
+      <div style="font-size:12px;color:var(--dim);margin-top:10px;padding:0 4px;line-height:1.7">💡 最常用的課程透露了你最大的心魔。若「停損後修復」次數偏高，代表停損頻繁——也許該檢視進場規則本身。</div>`:""}
+    ${notes.length?`<div class="sect">最近的日誌</div>${notes.map(l=>`<div class="card">
+      <div style="font-size:11px;color:var(--dim);margin-bottom:6px">${l.date.slice(0,10)} · ${(SESSIONS.find(s=>s.id===l.sessionId)||{}).label||""} · ${MOODS[l.moodBefore]} → ${MOODS[l.moodAfter]}</div>
+      <div style="font-size:14px;line-height:1.7;color:#BFD9EC">${esc(l.note)}</div></div>`).join("")}`:""}
+    ${logs.length===0?`<div class="card" style="margin-top:22px;text-align:center;padding:30px 18px">
+      <div style="font-size:32px">📊</div><div style="font-size:14px;color:var(--sub);margin-top:10px;line-height:1.7">還沒有任何紀錄。<br>完成第一次冥想後，數據會出現在這裡。</div></div>`:""}
+    <button class="btn btn-ghost" id="exportBtn" style="margin-top:20px">📤 匯出資料備份（JSON）</button>
+  </div>`;
+}
+
+/* ============ RENDER & EVENTS ============ */
+function render(){
+  if(view)return;
+  app.innerHTML=tab==="home"?homeHTML():tab==="courses"?coursesHTML():tab==="check"?checkHTML():statsHTML();
+  // bind session cards
+  app.querySelectorAll("[data-session]").forEach(el=>{
+    el.onclick=()=>{view={type:"session"};renderSession(SESSIONS.find(s=>s.id===el.dataset.session))};
+  });
+  const sos=document.getElementById("sosCard");
+  if(sos)sos.onclick=()=>{view={type:"sos"};renderSos()};
+  // checklist
+  app.querySelectorAll("[data-chk]").forEach(el=>{
+    el.onclick=()=>{const i=parseInt(el.dataset.chk);checkState[i]=!checkState[i];render()};
+  });
+  const rc=document.getElementById("resetChk");
+  if(rc)rc.onclick=()=>{checkState=CHECKLIST.map(()=>false);render()};
+  const gc=document.getElementById("goCalm");
+  if(gc)gc.onclick=()=>{view={type:"session"};renderSession(SESSIONS.find(s=>s.id==="pretrade"))};
+  const ex=document.getElementById("exportBtn");
+  if(ex)ex.onclick=()=>{
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="mindful-trader-backup-"+todayStr()+".json";
+    a.click();
+  };
+}
+document.querySelectorAll("#tabbar button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#tabbar button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");tab=b.dataset.tab;render();
+    window.scrollTo(0,0);
+  };
+});
+render();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
